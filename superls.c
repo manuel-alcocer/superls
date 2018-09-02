@@ -156,7 +156,7 @@ int fill_directory(struct arguments *args){
     else
         limit = args->limit;
 
-    while ((dp = fopen(gen_filename(args->directory, args->prefix, i++), "a")) != NULL && i < limit)
+    while ((dp = fopen(gen_filename(args->directory, args->prefix, i), "a")) != NULL && i++ < limit)
         fclose(dp);
 
     return 0;
