@@ -138,8 +138,11 @@ int read_options(int argc, char **argv, struct arguments *args){
 char * gen_filename(const char *directory, const char *prefix, unsigned int pos){
     static char filename[NAME_MAX];
     char *retname;
+
     retname = filename;
+
     sprintf(filename, "%s/%s%u", directory, prefix, pos);
+
     return retname;
 }
 
@@ -155,6 +158,7 @@ int fill_directory(struct arguments *args){
 
     while ((dp = fopen(gen_filename(args->directory, args->prefix, i++), "a")) != NULL && i < limit)
         fclose(dp);
+
     return 0;
 }
 
