@@ -18,7 +18,7 @@
  *
  *  [opciones]:
  *      -p <patrón>         patrón a analizar. Si no se pone esta opción lista
- *      (--pattern)         todos los ficheros.
+ *      (--pattern)         todos los ficheros. (patrón del tipo: * ? !)
  *
  *      -E                  el patrón es una expresión regular extendida
  *      (--eregexp)         (PREDETERMINADO)
@@ -36,6 +36,8 @@
  *      -l <límite>         'límite' es un entero. En el caso de un listado, es
  *      (--limit)           el número máximo de ficheros que se mostrarán. En el
  *                          caso de usar --fill, es el número de ficheros a crear.
+ *                          Si el límite es 0 o no se especifica, el límite es el
+ *                          máximo entero sin signo especificado en limits.h
  *
  *      -F[prefix]          FILL. Llena el directorio pasado como argumento de ficheros
  *                          Opcionalmente se puede poner un prefijo para los
@@ -140,7 +142,6 @@ char * gen_filename(const char *directory, const char *prefix, unsigned int pos)
     char *retname;
 
     retname = filename;
-
     sprintf(filename, "%s/%s%u", directory, prefix, pos);
 
     return retname;
@@ -155,7 +156,6 @@ int fill_directory(struct arguments *args){
         limit = UINT_MAX;
     else
         limit = args->limit;
-
     while ((dp = fopen(gen_filename(args->directory, args->prefix, i), "a")) != NULL && i++ < limit)
         fclose(dp);
 
