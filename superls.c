@@ -62,6 +62,8 @@ const char DEFAULT_PREFIX[] = "tmp_file_";
 #include <stdlib.h>
 #include <limits.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 struct options {
     unsigned int limit;     /* 0: no limit */
@@ -144,8 +146,7 @@ int read_options(int argc, char **argv, struct options *opts){
 
 char * gen_filename(const char *directory, const char *prefix, unsigned int pos){
     static char filename[NAME_MAX];
-    char *retname;
-    retname = filename;
+    char *retname = filename;
 
     sprintf(filename, "%s/%s%u", directory, prefix, pos);
 
@@ -166,9 +167,25 @@ int fill_directory(struct options *opts){
     return 0;
 }
 
+int check_dirname(const char *dirname){
+    struct stat st, *stp = &st;
+
+    if (!stat(dirname, stp) && S_ISDIR(stp->st_mode))
+        return 1;
+    else
+        return 0;
+}
+
+int superls_readdir(struct options *opts){
+    struct dirent *ep;
+    DIR *dp;
+    int is_dir;
+
+    is_dir = check_dirname(opts->directory);
+}
+
 int main(int argc, char **argv){
-    struct options opts, *popts;
-    popts = &opts;
+    struct options opts, *popts = &opts;
 
     /*  DEFAULT VALUES */
     popts->delete       = 0;
@@ -183,6 +200,8 @@ int main(int argc, char **argv){
 
     if (popts->prefix[0] != '\0')
         fill_directory(popts);
+    else
+        superls_readdir(popts);
 
     return 0;
 }
