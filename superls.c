@@ -80,6 +80,7 @@ void show_help(){
 int read_options(int argc, char **argv, struct options *opts){
     int c;
     int option_index = 0;
+    int i;
 
     struct option long_options[] = {
         { "pattern",    required_argument,  0,  'p' },
@@ -108,6 +109,12 @@ int read_options(int argc, char **argv, struct options *opts){
                 opts->force = 1;
                 break;
             case 'l':
+                i = 0;
+                while (optarg[i++] != '\0')
+                    if (optarg[i-1] < '0' || optarg[i-1] > '9') {
+                        show_help();
+                        exit(1);
+                    }
                 opts->limit = atoi(optarg);
                 break;
             case 'F':
