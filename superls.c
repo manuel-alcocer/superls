@@ -94,6 +94,15 @@ int read_options(int argc, char **argv, struct options *opts){
         { 0, 0, 0 ,0 }
     };
 
+    /*  DEFAULT VALUES */
+    opts->delete       = 0;
+    opts->force        = 0;
+    opts->regexp       = 0;
+    opts->limit        = UINT_MAX;
+    opts->pattern[0]   = '\0';
+    opts->prefix[0]    = '\0';
+    /*  END DEFAULT VALUES */
+
     while ((c = getopt_long(argc, argv, "p:eEdfhl:F::", long_options, &option_index)) != -1){
         switch(c){
             case 'd':
@@ -145,10 +154,9 @@ int read_options(int argc, char **argv, struct options *opts){
 }
 
 char * gen_filename(const char *directory, const char *prefix, unsigned int pos){
-    static char filename[NAME_MAX];
-    char *retname = filename;
+    char *retname = malloc(sizeof(char) * NAME_MAX);
 
-    sprintf(filename, "%s/%s%u", directory, prefix, pos);
+    sprintf(retname, "%s/%s%u", directory, prefix, pos);
 
     return retname;
 }
@@ -156,13 +164,13 @@ char * gen_filename(const char *directory, const char *prefix, unsigned int pos)
 int fill_directory(struct options *opts){
     FILE *dp;
     unsigned int limit, i = 0;
+    char *filename;
 
-    if (opts->limit == 0)
-        limit = UINT_MAX;
-    else
-        limit = opts->limit;
-    while ((dp = fopen(gen_filename(opts->directory, opts->prefix, i), "a")) != NULL && ++i < limit)
+    filename = gen_filename(opts->directory, opts->prefix, i);
+    while ((dp = fopen(filename, "a")) != NULL && ++i < opts->limit){
+        filename = gen_filename(opts->directory, opts->prefix, i);
         fclose(dp);
+    }
 
     return 0;
 }
@@ -179,22 +187,19 @@ int check_dirname(const char *dirname){
 int superls_readdir(struct options *opts){
     struct dirent *ep;
     DIR *dp;
-    int is_dir;
+    int i = 0;
 
-    is_dir = check_dirname(opts->directory);
+    if (check_dirname(opts->directory)){
+        dp = opendir(opts->directory);
+        while ((ep = readdir(dp)) && ++i < opts->limit)
+            puts(ep->d_name);
+        if (dp)
+            closedir(dp);
+    }
 }
 
 int main(int argc, char **argv){
     struct options opts, *popts = &opts;
-
-    /*  DEFAULT VALUES */
-    popts->delete       = 0;
-    popts->force        = 0;
-    popts->regexp       = 0;
-    popts->limit        = 0;
-    popts->pattern[0]   = '\0';
-    popts->prefix[0]    = '\0';
-    /*  END DEFAULT VALUES */
 
     read_options(argc, argv, popts);
 
