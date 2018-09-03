@@ -185,6 +185,10 @@ int check_dirname(const char *dirname){
         return 0;
 }
 
+int check_pattern(const char *d_name, struct options *opts){
+    return 1;
+}
+
 int superls_readdir(struct options *opts){
     struct dirent *ep;
     DIR *dp;
@@ -192,8 +196,9 @@ int superls_readdir(struct options *opts){
 
     if (check_dirname(opts->directory)){
         dp = opendir(opts->directory);
-        while ((ep = readdir(dp)) && ++i < opts->limit)
-            puts(ep->d_name);
+        while ((ep = readdir(dp)) && i++ < opts->limit)
+            if (!opts->pattern[0] || check_pattern(ep->d_name, opts))
+                puts(ep->d_name);
         if (dp)
             closedir(dp);
     }
@@ -204,7 +209,7 @@ int main(int argc, char **argv){
 
     read_options(argc, argv, popts);
 
-    if (popts->prefix[0] != '\0')
+    if (popts->prefix[0])
         fill_directory(popts);
     else
         superls_readdir(popts);
