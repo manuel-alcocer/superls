@@ -46,7 +46,7 @@
  *                          El prefijo debe ir pegado a -F
  *  [directorio]:
  *      El nombre del directorio, puede ser absoluto o relativo,
- *      si no se especifica, es './'
+ *      si no se especifica es CWD: './'
  *
  */
 
@@ -147,8 +147,8 @@ int read_options(int argc, char **argv, struct options *opts){
 char * gen_filename(const char *directory, const char *prefix, unsigned int pos){
     static char filename[NAME_MAX];
     char *retname;
-
     retname = filename;
+
     sprintf(filename, "%s/%s%u", directory, prefix, pos);
 
     return retname;
@@ -170,8 +170,8 @@ int fill_directory(struct options *opts){
 }
 
 int main(int argc, char **argv){
-    struct options opts;
-    struct options *popts = &opts;
+    struct options opts, *popts;
+    popts = &opts;
 
     /*  DEFAULT VALUES */
     popts->delete       = 0;
