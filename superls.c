@@ -78,9 +78,7 @@ void show_help(){
 }
 
 int read_options(int argc, char **argv, struct options *opts){
-    int c;
-    int option_index = 0;
-    int i;
+    int c, i, option_index = 0;
 
     struct option long_options[] = {
         { "pattern",    required_argument,  0,  'p' },
@@ -156,14 +154,13 @@ char * gen_filename(const char *directory, const char *prefix, unsigned int pos)
 
 int fill_directory(struct options *opts){
     FILE *dp;
-    unsigned int limit;
-    unsigned int i = 0;
+    unsigned int limit, i = 0;
 
     if (opts->limit == 0)
         limit = UINT_MAX;
     else
         limit = opts->limit;
-    while ((dp = fopen(gen_filename(opts->directory, opts->prefix, i), "a")) != NULL && i++ < limit)
+    while ((dp = fopen(gen_filename(opts->directory, opts->prefix, i), "a")) != NULL && ++i < limit)
         fclose(dp);
 
     return 0;
