@@ -63,7 +63,7 @@ const char DEFAULT_PREFIX[] = "tmp_file_";
 #include <limits.h>
 #include <unistd.h>
 
-struct arguments {
+struct options {
     unsigned int limit;     /* 0: no limit */
     int regexp;             /* 0: wildcard , 1: basic regexp, 2: extended regexp */
     int delete;
@@ -77,7 +77,7 @@ void show_help(){
     printf("Ayuda!\n");
 }
 
-int read_options(int argc, char **argv, struct arguments *args){
+int read_options(int argc, char **argv, struct options *opts){
     int c;
     int option_index = 0;
 
@@ -96,31 +96,31 @@ int read_options(int argc, char **argv, struct arguments *args){
     while ((c = getopt_long(argc, argv, "p:eEdfhl:F::", long_options, &option_index)) != -1){
         switch(c){
             case 'd':
-                args->delete = 1;
+                opts->delete = 1;
                 break;
             case 'e':
-                args->regexp = 1;
+                opts->regexp = 1;
                 break;
             case 'E':
-                args->regexp = 2;
+                opts->regexp = 2;
                 break;
             case 'f':
-                args->force = 1;
+                opts->force = 1;
                 break;
             case 'l':
-                args->limit = atoi(optarg);
+                opts->limit = atoi(optarg);
                 break;
             case 'F':
                 if (optarg)
-                    strcpy(args->prefix, optarg);
+                    strcpy(opts->prefix, optarg);
                 else
-                    strcpy(args->prefix, DEFAULT_PREFIX);
+                    strcpy(opts->prefix, DEFAULT_PREFIX);
                 break;
             case 'h':
                 show_help();
                 exit(0);
             case 'p':
-                strcpy(args->pattern, optarg);
+                strcpy(opts->pattern, optarg);
                 break;
             case '?':
                 show_help();
@@ -130,9 +130,9 @@ int read_options(int argc, char **argv, struct arguments *args){
 
     // Para terminar establece el directorio
     if (argv[optind] != NULL)
-        strcpy(args->directory, argv[optind]);
+        strcpy(opts->directory, argv[optind]);
     else
-        strcpy(args->directory, getcwd(NULL, 0));
+        strcpy(opts->directory, getcwd(NULL, 0));
 
     return c;
 }
@@ -147,38 +147,38 @@ char * gen_filename(const char *directory, const char *prefix, unsigned int pos)
     return retname;
 }
 
-int fill_directory(struct arguments *args){
+int fill_directory(struct options *opts){
     FILE *dp;
     unsigned int limit;
     unsigned int i = 0;
 
-    if (args->limit == 0)
+    if (opts->limit == 0)
         limit = UINT_MAX;
     else
-        limit = args->limit;
-    while ((dp = fopen(gen_filename(args->directory, args->prefix, i), "a")) != NULL && i++ < limit)
+        limit = opts->limit;
+    while ((dp = fopen(gen_filename(opts->directory, opts->prefix, i), "a")) != NULL && i++ < limit)
         fclose(dp);
 
     return 0;
 }
 
 int main(int argc, char **argv){
-    struct arguments args;
-    struct arguments *pargs = &args;
+    struct options opts;
+    struct options *popts = &opts;
 
     /*  DEFAULT VALUES */
-    pargs->delete       = 0;
-    pargs->force        = 0;
-    pargs->regexp       = 0;
-    pargs->limit        = 0;
-    pargs->pattern[0]   = '\0';
-    pargs->prefix[0]    = '\0';
+    popts->delete       = 0;
+    popts->force        = 0;
+    popts->regexp       = 0;
+    popts->limit        = 0;
+    popts->pattern[0]   = '\0';
+    popts->prefix[0]    = '\0';
     /*  END DEFAULT VALUES */
 
-    read_options(argc, argv, pargs);
+    read_options(argc, argv, popts);
 
-    if (pargs->prefix[0] != '\0')
-        fill_directory(pargs);
+    if (popts->prefix[0] != '\0')
+        fill_directory(popts);
 
     return 0;
 }
