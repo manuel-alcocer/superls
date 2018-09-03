@@ -54,7 +54,7 @@
 
 #define MAX_REGEXP 4096
 
-const char DEFAULT_PREFIX[] = "tmp_file_";
+char DEFAULT_PREFIX[] = "tmp_file_";
 
 #include <stdio.h>
 #include <getopt.h>
@@ -70,9 +70,9 @@ struct options {
     int regexp;             /* 0: wildcard , 1: basic regexp, 2: extended regexp */
     int delete;
     int force;
-    char prefix[NAME_MAX];
-    char directory[PATH_MAX - NAME_MAX];
-    char pattern[MAX_REGEXP];
+    char *prefix;
+    char *directory;
+    char *pattern;
 };
 
 void show_help(){
@@ -94,6 +94,9 @@ int read_options(int argc, char **argv, struct options *opts){
         { 0, 0, 0 ,0 }
     };
 
+    opts->prefix = malloc(sizeof(char) * NAME_MAX);
+    opts->pattern = malloc(sizeof(char) * MAX_REGEXP);
+    opts->directory = malloc(sizeof(char) * (PATH_MAX - NAME_MAX));
     /*  DEFAULT VALUES */
     opts->delete       = 0;
     opts->force        = 0;
@@ -128,15 +131,15 @@ int read_options(int argc, char **argv, struct options *opts){
                 break;
             case 'F':
                 if (optarg)
-                    strcpy(opts->prefix, optarg);
+                    opts->prefix = optarg;
                 else
-                    strcpy(opts->prefix, DEFAULT_PREFIX);
+                    opts->prefix = DEFAULT_PREFIX;
                 break;
             case 'h':
                 show_help();
                 exit(0);
             case 'p':
-                strcpy(opts->pattern, optarg);
+                opts->pattern = optarg;
                 break;
             case '?':
                 show_help();
@@ -146,9 +149,9 @@ int read_options(int argc, char **argv, struct options *opts){
 
     // Para terminar establece el directorio
     if (argv[optind] != NULL)
-        strcpy(opts->directory, argv[optind]);
+        opts->directory = argv[optind];
     else
-        strcpy(opts->directory, getcwd(NULL, 0));
+        opts->directory = getcwd(NULL, 0);
 
     return c;
 }
@@ -204,6 +207,12 @@ int superls_readdir(struct options *opts){
     }
 }
 
+void free_memory(struct options *opts){
+    free(opts->prefix);
+    free(opts->directory);
+    free(opts->pattern);
+}
+
 int main(int argc, char **argv){
     struct options opts, *popts = &opts;
 
@@ -213,6 +222,8 @@ int main(int argc, char **argv){
         fill_directory(popts);
     else
         superls_readdir(popts);
+
+    free_memory(popts);
 
     return 0;
 }
