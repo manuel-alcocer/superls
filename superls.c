@@ -187,7 +187,7 @@ int check_dirname(const char *dirname){
 int superls_readdir(struct options *opts){
     struct dirent *ep;
     DIR *dp;
-    int i = 0;
+    unsigned int i = 0;
 
     if (check_dirname(opts->directory)){
         dp = opendir(opts->directory);
