@@ -171,6 +171,7 @@ int fill_directory(struct options *opts){
         filename = gen_filename(opts->directory, opts->prefix, i);
         fclose(dp);
     }
+    free(filename);
 
     return 0;
 }
