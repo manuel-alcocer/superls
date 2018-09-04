@@ -166,11 +166,8 @@ int fill_directory(struct options *opts){
     unsigned int limit, i = 0;
     char *filename;
 
-    filename = gen_filename(opts->directory, opts->prefix, i);
-    while ((dp = fopen(filename, "a")) != NULL && ++i < opts->limit){
-        filename = gen_filename(opts->directory, opts->prefix, i);
+    while ((dp = fopen((filename = gen_filename(opts->directory, opts->prefix, i)), "a")) != NULL && ++i < opts->limit)
         fclose(dp);
-    }
     free(filename);
 
     return 0;
