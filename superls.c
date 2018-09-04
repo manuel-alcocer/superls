@@ -19,6 +19,7 @@
  *  [opciones]:
  *      -p <patrón>         patrón a analizar. Si no se pone esta opción lista
  *      (--pattern)         todos los ficheros. (patrón del tipo: * ? !)
+ *                          NOTA: Admite wildcards extendidos de KSH
  *
  *      -E                  el patrón es una expresión regular extendida
  *      (--eregexp)         (PREDETERMINADO)
@@ -54,7 +55,7 @@
 
 #define MAX_REGEXP 4096
 
-char DEFAULT_PREFIX[] = "tmp_file_";
+#define DEFAULT_PREFIX  "tmp_file_"
 
 #include <stdio.h>
 #include <getopt.h>
@@ -64,10 +65,13 @@ char DEFAULT_PREFIX[] = "tmp_file_";
 #include <unistd.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <fnmatch.h>
+
+enum MatchTypes { WILD, BREG, EREG };   /* 0: wildcard , 1: basic regexp, 2: extended regexp */
 
 struct options {
-    unsigned int limit;     /* 0: no limit */
-    int regexp;             /* 0: wildcard , 1: basic regexp, 2: extended regexp */
+    unsigned int limit;         /* 0: no limit */
+    enum MatchTypes regexp;
     int delete;
     int force;
     char prefix[NAME_MAX];
@@ -97,7 +101,7 @@ int read_options(int argc, char **argv, struct options *opts){
     /*  DEFAULT VALUES */
     opts->delete       = 0;
     opts->force        = 0;
-    opts->regexp       = 0;
+    opts->regexp       = WILD;
     opts->limit        = UINT_MAX;
     opts->pattern[0]   = '\0';
     opts->prefix[0]    = '\0';
@@ -109,10 +113,10 @@ int read_options(int argc, char **argv, struct options *opts){
                 opts->delete = 1;
                 break;
             case 'e':
-                opts->regexp = 1;
+                opts->regexp = BREG;
                 break;
             case 'E':
-                opts->regexp = 2;
+                opts->regexp = EREG;
                 break;
             case 'f':
                 opts->force = 1;
@@ -178,12 +182,24 @@ int check_dirname(const char *dirname){
 
     if (!stat(dirname, stp) && S_ISDIR(stp->st_mode))
         return 1;
-    else
-        return 0;
+
+    return 0;
 }
 
 int check_pattern(const char *d_name, struct options *opts){
-    return 1;
+    switch (opts->regexp){
+        case 0:
+            if (fnmatch(opts->pattern, d_name, FNM_FILE_NAME|FNM_PERIOD|FNM_EXTMATCH) == 0)
+                return 1;
+            break;
+        case 1:
+            return 1;
+            break;
+        case 2:
+            return 1;
+            break;
+    }
+    return 0;
 }
 
 int superls_readdir(struct options *opts){
