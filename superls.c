@@ -55,7 +55,7 @@
 
 #define MAX_REGEXP 4096
 
-#define DEFAULT_PREFIX  "tmp_file_"
+#define DEFAULT_PREFIX "tmp_file_"
 
 #include <stdio.h>
 #include <getopt.h>
@@ -66,21 +66,40 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <fnmatch.h>
+#include <regex.h>
 
-enum MatchTypes { WILD, BREG, EREG };   /* 0: wildcard , 1: basic regexp, 2: extended regexp */
+enum RegexTypes { WILDC, BREG, EREG };   /* 0: wildcard , 1: basic regexp, 2: extended regexp */
 
 struct options {
-    unsigned int limit;         /* 0: no limit */
-    enum MatchTypes regexp;
+    unsigned int limit;                 /* 0: no limit */
+    enum RegexTypes regexp;
     int delete;
     int force;
     char prefix[NAME_MAX];
     char directory[PATH_MAX - NAME_MAX];
     char pattern[MAX_REGEXP];
+    regex_t regcomp;
 };
 
 void show_help(){
     printf("Ayuda!\n");
+}
+
+int show_compiling_error(int compile_result){
+    puts("Error while compiling regex");
+}
+
+int compile_pattern(struct options *opts){
+    int flags = REG_NOSUB, compile_result;
+
+    if (opts->regexp == EREG)
+        flags |= REG_EXTENDED;
+
+    compile_result = regcomp(&opts->regcomp, opts->pattern, flags);
+
+    if (compile_result)
+        show_compiling_error(compile_result);
+    return 0;
 }
 
 int read_options(int argc, char **argv, struct options *opts){
@@ -101,7 +120,7 @@ int read_options(int argc, char **argv, struct options *opts){
     /*  DEFAULT VALUES */
     opts->delete       = 0;
     opts->force        = 0;
-    opts->regexp       = WILD;
+    opts->regexp       = WILDC;
     opts->limit        = UINT_MAX;
     opts->pattern[0]   = '\0';
     opts->prefix[0]    = '\0';
@@ -147,6 +166,9 @@ int read_options(int argc, char **argv, struct options *opts){
                 exit(1);
         }
     }
+
+    if (opts->regexp > 1)
+        compile_pattern(opts);
 
     // Para terminar establece el directorio
     if (argv[optind] != NULL)
