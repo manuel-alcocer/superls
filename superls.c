@@ -29,7 +29,9 @@
  *
  *      -d                  borra los ficheros pidiendo confirmación 1 a 1
  *      (--delete)          (en la confirmación están las opciones:
- *                           yes,no,all,quit)
+ *                          yes,no,all,quit)
+ *                          Adicionalmente se puede anteponer un entero a la acción
+ *                          a realizar.
  *
  *      -f                  no pide confirmación cuando se está borrando. OJITO!
  *      (--force)
