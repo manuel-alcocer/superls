@@ -209,17 +209,15 @@ int check_dirname(const char *dirname){
 }
 
 int check_pattern(const char *d_name, struct options *opts){
-    switch (opts->regexp){
-        case 0:
-            if (fnmatch(opts->pattern, d_name, FNM_FILE_NAME|FNM_PERIOD|FNM_EXTMATCH) == 0)
-                return 1;
-            break;
-        case 1:
+    int flags = 0;
+
+    flags |= FNM_FILE_NAME|FNM_PERIOD|FNM_EXTMATCH;
+
+    if (!opts->regexp){
+        if (fnmatch(opts->pattern, d_name, flags) == 0)
             return 1;
-            break;
-        case 2:
-            return 1;
-            break;
+    } else if (regexec(&opts->regcomp, d_name, 0, NULL, 0) == 0){
+        return 1;
     }
     return 0;
 }
