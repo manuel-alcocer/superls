@@ -167,7 +167,7 @@ int read_options(int argc, char **argv, struct options *opts){
         }
     }
 
-    if (opts->regexp > 1)
+    if (opts->regexp > 0)
         compile_pattern(opts);
 
     // Para terminar establece el directorio
