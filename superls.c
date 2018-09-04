@@ -70,9 +70,9 @@ struct options {
     int regexp;             /* 0: wildcard , 1: basic regexp, 2: extended regexp */
     int delete;
     int force;
-    char *prefix;
-    char *directory;
-    char *pattern;
+    char prefix[NAME_MAX];
+    char directory[PATH_MAX - NAME_MAX];
+    char pattern[MAX_REGEXP];
 };
 
 void show_help(){
@@ -94,9 +94,6 @@ int read_options(int argc, char **argv, struct options *opts){
         { 0, 0, 0 ,0 }
     };
 
-    opts->prefix = malloc(sizeof(char) * NAME_MAX);
-    opts->pattern = malloc(sizeof(char) * MAX_REGEXP);
-    opts->directory = malloc(sizeof(char) * (PATH_MAX - NAME_MAX));
     /*  DEFAULT VALUES */
     opts->delete       = 0;
     opts->force        = 0;
@@ -131,15 +128,15 @@ int read_options(int argc, char **argv, struct options *opts){
                 break;
             case 'F':
                 if (optarg)
-                    opts->prefix = optarg;
+                    strcpy(opts->prefix, optarg);
                 else
-                    opts->prefix = DEFAULT_PREFIX;
+                    strcpy(opts->prefix, DEFAULT_PREFIX);
                 break;
             case 'h':
                 show_help();
                 exit(0);
             case 'p':
-                opts->pattern = optarg;
+                strcpy(opts->pattern, optarg);
                 break;
             case '?':
                 show_help();
@@ -149,9 +146,9 @@ int read_options(int argc, char **argv, struct options *opts){
 
     // Para terminar establece el directorio
     if (argv[optind] != NULL)
-        opts->directory = argv[optind];
+        strcpy(opts->directory, argv[optind]);
     else
-        opts->directory = getcwd(NULL, 0);
+        strcpy(opts->directory, getcwd(NULL, 0));
 
     return c;
 }
@@ -207,12 +204,6 @@ int superls_readdir(struct options *opts){
     }
 }
 
-void free_memory(struct options *opts){
-    free(opts->prefix);
-    free(opts->directory);
-    free(opts->pattern);
-}
-
 int main(int argc, char **argv){
     struct options opts, *popts = &opts;
 
@@ -222,8 +213,6 @@ int main(int argc, char **argv){
         fill_directory(popts);
     else
         superls_readdir(popts);
-
-    free_memory(popts);
 
     return 0;
 }
