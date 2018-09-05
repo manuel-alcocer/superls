@@ -33,7 +33,7 @@
  *                          Adicionalmente se puede anteponer un entero a la acción
  *                          a realizar.
  *
- *      -f                  no pide confirmación cuando se está borrando. OJITO!
+ *      -f                  no pide confirmación cuando se está borrando. ¡OJITO!
  *      (--force)
  *
  *      -l <límite>         'límite' es un entero. En el caso de un listado, es
@@ -49,7 +49,36 @@
  *                          El prefijo debe ir pegado a -F
  *  [directorio]:
  *      El nombre del directorio, puede ser absoluto o relativo,
- *      si no se especifica es CWD: './'
+ *      si no se especifica es CWD pero en ruta absoluta, i.e.: /home/foo/test_superls
+ *
+ *  Ejemplos de uso:
+ *  ================
+ *
+ *  1. Creación de ficheros
+ *      a) 1522 ficheros con prefijo personalizado:
+ *
+ *          $ ./superls -Fmis_archivos_ -l 1522
+ *
+ *      b) Crear ficheros hasta que 'pete' el sistema:
+ *
+ *          $ ./superls -F
+ *
+ *  2. Listados de ficheros:
+ *      a) Usando wildcards:
+ *
+ *          $ ./superls -p 'a*'
+ *
+ *      b) Listado de máximo los 1000 primeros usando wildcards KSH:
+ *
+ *          $ ./superls -p '+(a*|b*)' -l1000
+ *
+ *      c) Usando Regexp:
+ *
+ *          $ ./superls -p '^a\[1\].*' -e
+ *
+ *      d) Usando Regexp Extendidas:
+ *
+ *          $ ./superls -p '^a[1][^0].*' -E
  *
  */
 
@@ -128,7 +157,7 @@ int read_options(int argc, char **argv, struct options *opts){
     opts->prefix[0]    = '\0';
     /*  END DEFAULT VALUES */
 
-    while ((c = getopt_long(argc, argv, "p:eEdfhl:F::", long_options, &option_index)) != -1){
+    while ((c = getopt_long(argc, argv, "p:eEdfl:F::h", long_options, &option_index)) != -1){
         switch(c){
             case 'd':
                 opts->delete = 1;
@@ -182,7 +211,7 @@ int read_options(int argc, char **argv, struct options *opts){
 }
 
 char * gen_filename(const char *directory, const char *prefix, unsigned int pos){
-    char *retname = malloc(sizeof(char) * NAME_MAX);
+    char *retname = malloc(sizeof(char) * PATH_MAX);
 
     sprintf(retname, "%s/%s%u", directory, prefix, pos);
 
@@ -212,15 +241,14 @@ int check_dirname(const char *dirname){
 
 int check_pattern(const char *d_name, struct options *opts){
     int flags = 0;
-
     flags |= FNM_FILE_NAME|FNM_PERIOD|FNM_EXTMATCH;
 
-    if (!opts->regexp){
+    if (!opts->regexp) {
         if (fnmatch(opts->pattern, d_name, flags) == 0)
             return 1;
-    } else if (regexec(&opts->regcomp, d_name, 0, NULL, 0) == 0){
+    } else if (regexec(&opts->regcomp, d_name, 0, NULL, 0) == 0)
         return 1;
-    }
+
     return 0;
 }
 
