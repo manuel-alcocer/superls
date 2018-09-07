@@ -220,7 +220,7 @@ OptionsPtr read_options(int argc, char **argv, OptionsPtr opts){
 }
 
 char * gen_filename(const char *directory, const char *prefix, unsigned int pos){
-    char *retname = malloc(sizeof(char) * PATH_MAX);
+    char *retname = malloc(sizeof(char) * (PATH_MAX + 1));
 
     sprintf(retname, "%s/%s%u", directory, prefix, pos);
 
