@@ -101,8 +101,6 @@
 
 enum RegexTypes { WILDC, BREG, EREG };   /* 0: wildcard , 1: basic regexp, 2: extended regexp */
 
-typedef struct __options *OptionsPtr;
-
 typedef struct __options {
     unsigned int limit;                 /* 0: no limit */
     enum RegexTypes regexp;
@@ -112,7 +110,8 @@ typedef struct __options {
     char directory[PATH_MAX - NAME_MAX + 1];
     char pattern[MAX_REGEXP];
     regex_t regcomp;
-} Options;
+} options;
+typedef struct __options *OPTIONS;
 
 void show_help(){
     printf("Ayuda!\n");
@@ -122,7 +121,7 @@ int show_compiling_error(int compile_result){
     puts("Error while compiling regex");
 }
 
-int compile_pattern(OptionsPtr opts){
+int compile_pattern(OPTIONS opts){
     int flags = REG_NOSUB, compile_result;
 
     if (opts->regexp == EREG)
@@ -135,15 +134,15 @@ int compile_pattern(OptionsPtr opts){
     return 0;
 }
 
-OptionsPtr Optsalloc(void){
-    return (OptionsPtr) malloc(sizeof(Options));
+OPTIONS opts_alloc(void){
+    return (OPTIONS) malloc(sizeof(options));
 }
 
-OptionsPtr read_options(int argc, char **argv, OptionsPtr opts){
+OPTIONS read_options(int argc, char **argv, OPTIONS opts){
     int c, i, option_index = 0;
 
     if (!opts)
-        opts = Optsalloc();
+        opts = opts_alloc();
 
     struct option long_options[] = {
         { "pattern",    required_argument,  0,  'p' },
@@ -216,23 +215,24 @@ OptionsPtr read_options(int argc, char **argv, OptionsPtr opts){
     else
         strcpy(opts->directory, getcwd(NULL, 0));
 
-    return (OptionsPtr) opts;
+    return (OPTIONS) opts;
 }
 
-char * gen_filename(const char *directory, const char *prefix, unsigned int pos){
-    char *retname = malloc(sizeof(char) * (PATH_MAX + 1));
+char * gen_filename(char *filename, const char *directory, const char *prefix, unsigned int pos){
+    if (!filename)
+        filename = malloc(sizeof(char) * (PATH_MAX + 1));
 
-    sprintf(retname, "%s/%s%u", directory, prefix, pos);
+    sprintf(filename, "%s/%s%u", directory, prefix, pos);
 
-    return retname;
+    return filename;
 }
 
-int fill_directory(OptionsPtr opts){
+int fill_directory(OPTIONS opts){
     FILE *dp;
     unsigned int limit, i = 0;
-    char *filename;
+    char *filename = NULL;
 
-    while ((dp = fopen((filename = gen_filename(opts->directory, opts->prefix, i)), "a")) != NULL && ++i < opts->limit)
+    while ((dp = fopen((filename = gen_filename(filename, opts->directory, opts->prefix, i)), "a")) != NULL && ++i < opts->limit)
         fclose(dp);
     free(filename);
 
@@ -240,15 +240,15 @@ int fill_directory(OptionsPtr opts){
 }
 
 int check_dirname(const char *dirname){
-    struct stat st, *stp = &st;
+    struct stat st;
 
-    if (!stat(dirname, stp) && S_ISDIR(stp->st_mode))
+    if (!stat(dirname, &st) && S_ISDIR((&st)->st_mode))
         return 1;
 
     return 0;
 }
 
-int check_pattern(const char *d_name, OptionsPtr opts){
+int check_pattern(const char *d_name, OPTIONS opts){
     int flags = 0;
     flags |= FNM_FILE_NAME|FNM_PERIOD|FNM_EXTMATCH;
 
@@ -261,12 +261,12 @@ int check_pattern(const char *d_name, OptionsPtr opts){
     return 0;
 }
 
-int superls_delentries(OptionsPtr opts){
+int superls_delentries(OPTIONS opts){
     puts("Borrando elementos...");
     return 0;
 }
 
-int superls_readdir(OptionsPtr opts){
+int superls_readdir(OPTIONS opts){
     struct dirent *ep;
     DIR *dp;
     unsigned int i = 0;
@@ -283,7 +283,7 @@ int superls_readdir(OptionsPtr opts){
 }
 
 int main(int argc, char **argv){
-    OptionsPtr opts;
+    OPTIONS opts;
 
     opts = read_options(argc, argv, NULL);
 
