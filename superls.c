@@ -273,9 +273,11 @@ int superls_readdir(OPTIONS opts){
 
     if (check_dirname(opts->directory)){
         dp = opendir(opts->directory);
-        while ((ep = readdir(dp)) && i++ < opts->limit){
-            if (!opts->pattern[0] || check_pattern(ep->d_name, opts))
+        while ((ep = readdir(dp)) && i < opts->limit){
+            if (!opts->pattern[0] || check_pattern(ep->d_name, opts)){
                 puts(ep->d_name);
+                i++;
+            }
         }
         if (dp)
             closedir(dp);
