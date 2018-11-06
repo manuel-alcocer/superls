@@ -261,8 +261,9 @@ int check_pattern(const char *d_name, OPTIONS opts){
     return 0;
 }
 
-int superls_delentries(OPTIONS opts){
-    puts("Borrando elementos...");
+int superls_delentry(const char *filename){
+    printf("Borrando elemento: %s\n", filename);
+    unlink(filename);
     return 0;
 }
 
@@ -270,12 +271,18 @@ int superls_readdir(OPTIONS opts){
     struct dirent *ep;
     DIR *dp;
     unsigned int i = 0;
+    char filename[NAME_MAX];
 
     if (check_dirname(opts->directory)){
         dp = opendir(opts->directory);
         while ((ep = readdir(dp)) && i < opts->limit){
             if (!opts->pattern[0] || check_pattern(ep->d_name, opts)){
-                puts(ep->d_name);
+                strcpy(filename,ep->d_name);
+                if (opts->delete && strcmp(filename, ".") != 0 && strcmp(filename,"..") != 0){
+                    superls_delentry(filename);
+                } else if (!opts->delete) {
+                    puts(filename);
+                }
                 i++;
             }
         }
@@ -291,10 +298,8 @@ int main(int argc, char **argv){
 
     if (opts->prefix[0])
         fill_directory(opts);
-    else if (!opts->delete)
+    else
         superls_readdir(opts);
-    else if (opts->delete)
-        superls_delentries(opts);
 
     return 0;
 }
