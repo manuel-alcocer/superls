@@ -263,7 +263,7 @@ int check_pattern(const char *d_name, OPTIONS opts){
 
 int superls_delentry(const char *filename){
     printf("Borrando elemento: %s\n", filename);
-    unlink(filename);
+    // unlink(filename);
     return 0;
 }
 
